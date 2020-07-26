@@ -1,21 +1,51 @@
+import 'package:cartvorie/controllers/user_controller.dart';
 import 'package:cartvorie/utils/universal_variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:mvc_pattern/mvc_pattern.dart';
 import 'package:pin_entry_text_field/pin_entry_text_field.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:cartvorie/screens/login_page.dart';
 
 class ConfirmPin extends StatefulWidget {
+  final String pin;
+  final String email;
+  final String password;
+  final String firstName;
+  final String lastName;
+  final String accountType;
+
+  const ConfirmPin(
+      {Key key,
+      this.pin,
+      this.email,
+      this.password,
+      this.firstName,
+      this.lastName,
+      this.accountType})
+      : super(key: key);
   @override
   _ConfirmPinState createState() => _ConfirmPinState();
 }
 
-class _ConfirmPinState extends State<ConfirmPin> {
+class _ConfirmPinState extends StateMVC<ConfirmPin> {
+  UserController _con;
+
+  _ConfirmPinState() : super(UserController()) {
+    _con = controller;
+  }
+
+  _notifier(String serverRes) {
+    _con.scaffoldKey.currentState
+        .showSnackBar(SnackBar(content: Text(serverRes)));
+  }
+
   String pinCode;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
+            key: _con.scaffoldKey,
             backgroundColor: Colors.white,
             appBar: AppBar(
               iconTheme: IconThemeData(color: Colors.black),
@@ -64,7 +94,19 @@ class _ConfirmPinState extends State<ConfirmPin> {
               )),
               SizedBox(height: 40),
               GestureDetector(
-                  onTap: () => alert(context), child: largeBtn('Authenticate')),
+                  onTap: () {
+                    if (pinCode != widget.pin) {
+                      _notifier('Incorrect pin');
+                    } else {
+                      _con.register(
+                          email: widget.email,
+                          firstname: widget.firstName,
+                          lastname: widget.lastName,
+                          password: widget.password,
+                          accountType: widget.accountType);
+                    }
+                  },
+                  child: largeBtn('Authenticate')),
               SizedBox(height: 10),
               Row(
                   crossAxisAlignment: CrossAxisAlignment.center,

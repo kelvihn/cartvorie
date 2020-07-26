@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cartvorie/screens/home_page.dart';
 import 'package:cartvorie/screens/login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../repository/user_repository.dart' as repository;
+import 'package:cartvorie/screens/buyer/home_page.dart';
+import 'package:cartvorie/screens/driver/home_page.dart';
 
 class Onboarding extends StatefulWidget {
   @override
@@ -8,6 +12,34 @@ class Onboarding extends StatefulWidget {
 }
 
 class _OnboardingState extends State<Onboarding> {
+  _navigate() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final user = prefs.getString('current_user');
+    if (user == null) {
+      return null;
+    } else {
+      if (repository.currentUser.value.accountType == 'buyer') {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => BuyerHomePage()),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => DriverHomePage()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    _navigate();
+    super.initState();
+  }
+
   final PageController _pageController = PageController(initialPage: 0);
   final int numPage = 3;
   int _currentPage = 0;

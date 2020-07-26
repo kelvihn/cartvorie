@@ -5,13 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cartvorie/screens/registration.dart';
 import 'package:cartvorie/screens/recover_password.dart';
+import 'package:mvc_pattern/mvc_pattern.dart';
+import 'package:cartvorie/controllers/user_controller.dart';
 
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends StateMVC<LoginPage> {
+  UserController _con;
+
+  _LoginPageState() : super(UserController()) {
+    _con = controller;
+  }
+
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -45,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-            key: _scaffoldKey,
+            key: _con.scaffoldKey,
             appBar: AppBar(
               iconTheme: IconThemeData(color: Colors.black),
               backgroundColor: Colors.white,
@@ -109,7 +117,18 @@ class _LoginPageState extends State<LoginPage> {
                       ]),
                   SizedBox(height: 10),
                   GestureDetector(
-                      onTap: () => _decipherLogic(), child: largeBtn('Login')),
+                      onTap: () {
+                        if (emailController.text == '' ||
+                            passwordController.text == '') {
+                          return _notifier(
+                              'Please, kindly fill all required details.');
+                        } else {
+                          _con.login(
+                              email: emailController.text,
+                              password: passwordController.text);
+                        }
+                      },
+                      child: largeBtn('Login')),
                   SizedBox(height: 10),
                   Row(
                       crossAxisAlignment: CrossAxisAlignment.center,

@@ -1,14 +1,33 @@
+import 'package:cartvorie/controllers/user_controller.dart';
 import 'package:cartvorie/utils/universal_variables.dart';
 import 'package:flutter/material.dart';
 import 'package:cartvorie/screens/confirm_pin.dart';
 import 'package:cartvorie/screens/login_page.dart';
+import 'package:mvc_pattern/mvc_pattern.dart';
 
 class Registration extends StatefulWidget {
   @override
   _RegistrationState createState() => _RegistrationState();
 }
 
-class _RegistrationState extends State<Registration> {
+class _RegistrationState extends StateMVC<Registration> {
+  UserController _con;
+
+  _RegistrationState() : super(UserController()) {
+    _con = controller;
+  }
+
+  _notifier(String serverRes) {
+    _con.scaffoldKey.currentState
+        .showSnackBar(SnackBar(content: Text(serverRes)));
+  }
+
+  TextEditingController firstnameController = new TextEditingController();
+  TextEditingController lastnameController = new TextEditingController();
+  TextEditingController emailController = new TextEditingController();
+  TextEditingController passwordController = new TextEditingController();
+  TextEditingController confirmPasswordController = new TextEditingController();
+
   List<String> _locations = [
     'Buyer',
     'Driver',
@@ -18,6 +37,7 @@ class _RegistrationState extends State<Registration> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
+            key: _con.scaffoldKey,
             appBar: AppBar(
               iconTheme: IconThemeData(color: Colors.black),
               backgroundColor: Colors.white,
@@ -41,15 +61,31 @@ class _RegistrationState extends State<Registration> {
               SizedBox(height: 15),
               accountBox(),
               SizedBox(height: 20),
-              buildTextInput('First name'),
-              buildTextInput('Last name'),
-              buildTextInput('Email'),
-              buildTextInput('Password'),
-              buildTextInput('Confirm Password'),
+              buildTextInput('First name', firstnameController),
+              buildTextInput('Last name', lastnameController),
+              buildTextInput('Email', emailController),
+              buildTextInput('Password', passwordController),
+              buildTextInput('Confirm Password', confirmPasswordController),
               GestureDetector(
                   onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (_) => ConfirmPin()));
+                    if (emailController.text == '' ||
+                        passwordController.text == '' ||
+                        confirmPasswordController.text == '' ||
+                        firstnameController.text == '' ||
+                        lastnameController.text == '') {
+                      return _notifier(
+                          'Please, kindly fill all required details.');
+                    } else if (passwordController.text !=
+                        confirmPasswordController.text) {
+                      return _notifier('Password do not match');
+                    } else {
+                      _con.verifyEmail(
+                          accountType: _selectedLocation,
+                          email: emailController.text,
+                          lastname: lastnameController.text,
+                          firstname: firstnameController.text,
+                          password: passwordController.text);
+                    }
                   },
                   child: largeBtn('Create an Account')),
               SizedBox(height: 10),
@@ -155,7 +191,7 @@ class _RegistrationState extends State<Registration> {
         ));
   }
 
-  Widget buildTextInput(String hintText) {
+  Widget buildTextInput(String hintText, TextEditingController controller) {
     return Container(
       height: 50,
       width: MediaQuery.of(context).size.width,
@@ -167,6 +203,7 @@ class _RegistrationState extends State<Registration> {
           borderRadius: BorderRadius.circular(5)),
       child: Center(
           child: TextField(
+        controller: controller,
         decoration: InputDecoration.collapsed(hintText: hintText),
       )),
     );
